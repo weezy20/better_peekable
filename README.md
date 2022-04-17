@@ -10,8 +10,7 @@ fn main() {
             String::from("It's a nice day to make"),
             String::from("A better peekable iterator adaptor"),
         ];
-        let len = vec.len();
-        dbg!(len);
+
         let mut iter = vec.into_iter();
         let mut better_peeker = BPeekable::new(iter);
 
