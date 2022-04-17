@@ -26,4 +26,3 @@ fn main() {
         assert_eq!(better_peeker.next(), Some("World".to_string()));
         assert_eq!(better_peeker.peek_n(1), Some(&"A better peekable iterator adaptor".to_string()));
 }
-```
