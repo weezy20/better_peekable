@@ -1,6 +1,6 @@
 # A Better Peekable
 
-This crate provides `BPeekable<I: Iterator>` which is a wrapper over an iterator. You can call the usual iterator methods on `BPeekable<I>` like `next()` and others (untested at the moment), in addition to `peek()` and `peek_n` which allow you to peek the inner iterator without consuming it. `peek` gives you a reference to the immediately available item to be consumed by a `next()` call, whereas `peek_n` allows you to peek `n` times ahead. Calling `peek_n(0)` is the same as calling `peek`.
+This crate provides `BPeekable<I: Iterator>` which is a wrapper over an iterator. You can call the usual iterator methods on `BPeekable<I>` like `next()` and others (untested at the moment), in addition to `peek` and `peek_n` which allow you to peek the inner iterator without consuming it. `peek` gives you a reference to the immediately available item to be consumed by a `next()` call, whereas `peek_n` allows you to peek `n` times ahead. Calling `peek_n(0)` is the same as calling `peek`.
 
 `peek` and `peek_n` are idempotent which means calling them repeatedly on `BPeekable` should have no effects on the underlying iterator or any state of `BPeekable`.
 
