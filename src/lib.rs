@@ -1,19 +1,24 @@
 use std::collections::VecDeque;
-use std::marker::PhantomData;
 
-/// A better peekable struct unlike the std version of Peekable, where we hold more than 1 peeked char
+/// A better peekable struct unlike the std version of Peekable, where we hold more than 1 peeked char.
+#[derive(Debug)]
 pub struct BPeekable<I: Iterator> {
-    iter: PhantomData<I>,
+    peeked: bool,
+    iter: I,
     /// A cache holding a small list of peekables into the future
     /// Option<I::Item> is yielded by inner iterator
-    cache: VecDeque<I::Item>,
+    cache: VecDeque<Option<I::Item>>,
 }
 impl<I: Iterator> BPeekable<I> {
     pub fn new(i: I) -> Self {
-        let cache: VecDeque<_> = i.collect();
+        let mut cache: VecDeque<Option<I::Item>> = VecDeque::new();
+        let mut iter: I = i;
+        // Initialize the cache with one element to allow peeking
+        cache.push_back(iter.next());
         Self {
-            iter: PhantomData,
+            iter,
             cache,
+            peeked: false,
         }
     }
 }
@@ -29,25 +34,45 @@ pub trait BetterPeekable<I: Iterator> {
 impl<I> BetterPeekable<I> for BPeekable<I>
 where
     I: Iterator,
+    I::Item: std::fmt::Debug,
 {
     /// Peek once
+    #[inline(always)]
     fn peek(&mut self) -> Option<&I::Item> {
-        self.cache.get(0)
+        match self.cache.get(0) {
+            Some(_) => self.cache.get(0).unwrap().as_ref(),
+            None => {
+                if let Some(inner_item) = self.iter.next() {
+                    self.cache.push_back(Some(inner_item));
+                }
+                self.cache.get(0)?.as_ref()
+            }
+        }
     }
-
+    #[inline(always)]
     fn peek_n(&mut self, n: usize) -> Option<&I::Item> {
-        self.cache.get(n)
+        if !self.peeked {
+            for _ in 0..=n {
+                if let Some(inner_item) = self.iter.next() {
+                    self.cache.push_back(Some(inner_item));
+                }
+            }
+            self.peeked = true;
+        }
+        self.cache.get(n)?.as_ref()
     }
 }
 
 impl<I> Iterator for BPeekable<I>
 where
     I: Iterator,
+    I::Item: std::fmt::Debug,
 {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.cache.pop_front()
+        self.peeked = false;
+        self.cache.pop_front()?
     }
 }
 
@@ -57,13 +82,14 @@ mod tests {
     #[test]
     fn better_peekable_api() {
         let vec = vec![1, 2, 3, 4, 5, 6, 7, 8];
-        let len = vec.len();
-        dbg!(len);
-        let mut iter = vec.into_iter();
+        // let len = vec.len();
+        // dbg!(len);
+        let iter = vec.into_iter();
         let mut better_peeker = BPeekable::new(iter);
         // peek_n(8) when vector length == 8 should be out of bounds
         assert_eq!(better_peeker.peek_n(8), None);
         assert_eq!(better_peeker.peek_n(7), Some(&8));
+
         assert_eq!(better_peeker.peek_n(2), Some(&3));
         assert_eq!(better_peeker.peek(), Some(&1));
         assert_eq!(better_peeker.peek_n(2), Some(&3));
@@ -79,10 +105,12 @@ mod tests {
             String::from("World"),
             String::from("It's a nice day to make"),
             String::from("A better peekable iterator adaptor"),
+            String::from("Peek_N and Peek are supposed to be"),
+            String::from("Idempotent Methods"),
         ];
         let len = vec.len();
         dbg!(len);
-        let mut iter = vec.into_iter();
+        let iter = vec.into_iter();
         let mut better_peeker = BPeekable::new(iter);
 
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
@@ -91,7 +119,25 @@ mod tests {
         assert_eq!(better_peeker.peek_n(1), Some(&"World".to_string()));
         assert_eq!(better_peeker.next(), Some("Hello".to_string()));
         assert_eq!(better_peeker.next(), Some("World".to_string()));
-        assert_eq!(better_peeker.peek_n(1), Some(&"A better peekable iterator adaptor".to_string()));
-
+        assert_eq!(
+            better_peeker.peek(),
+            Some(&"It's a nice day to make".to_string())
+        );
+        assert_eq!(
+            better_peeker.peek_n(0),
+            Some(&"It's a nice day to make".to_string())
+        );
+        assert_eq!(
+            better_peeker.peek_n(1),
+            Some(&"A better peekable iterator adaptor".to_string())
+        );
+        assert_eq!(
+            better_peeker.nth(1),
+            Some("A better peekable iterator adaptor".to_string())
+        );
+        assert_eq!(
+            better_peeker.peek_n(1),
+            Some(&"Idempotent Methods".to_string())
+        );
     }
 }
