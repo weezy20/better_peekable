@@ -1,4 +1,5 @@
 [package]
+authors = ["Abhishek Shah"]
 name = "better_peekable"
 description = "Create a Peekable structure like Rust's Peekable except allowing for peeking n items ahead"
 repository = "https://github.com/weezy20/better_peekable"
