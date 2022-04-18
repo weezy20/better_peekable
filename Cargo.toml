@@ -8,5 +8,5 @@ version = "0.1.2"
 edition = "2021"
 license = "Apache-2.0"
 keywords = ["iterator", "multipeek", "better_peekable", "peekable", "peek"]
-categories = ["data-structures", "iterators", "peekable"]
+categories = ["data-structures", "no_std"]
 
