@@ -13,11 +13,13 @@ Feel free to file an issue if you test and find out if something doesn't match u
 use better_peekable::{BPeekable, BetterPeekable};
 
 fn main() {
-     let vec = vec![
+    let vec = vec![
             String::from("Hello"),
             String::from("World"),
             String::from("It's a nice day to make"),
             String::from("A better peekable iterator adaptor"),
+            String::from("Peek_N and Peek are supposed to be"),
+            String::from("Idempotent Methods"),
         ];
 
         let mut iter = vec.into_iter();
