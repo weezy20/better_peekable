@@ -89,11 +89,13 @@ mod tests {
         // peek_n(8) when vector length == 8 should be out of bounds
         assert_eq!(better_peeker.peek_n(8), None);
         assert_eq!(better_peeker.peek_n(7), Some(&8));
-
+        assert_eq!(better_peeker.peek(), Some(&1));
+        assert_eq!(better_peeker.peek_n(1), Some(&2));
         assert_eq!(better_peeker.peek_n(2), Some(&3));
         assert_eq!(better_peeker.peek(), Some(&1));
         assert_eq!(better_peeker.peek_n(2), Some(&3));
         assert_eq!(better_peeker.next(), Some(1));
+        assert_eq!(better_peeker.peek(), Some(&2));
         assert_eq!(better_peeker.next(), Some(2));
         assert_eq!(better_peeker.peek(), Some(&3));
     }
