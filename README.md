@@ -10,7 +10,8 @@ We are going to test the idempotence of `BPeekable` using the following sequence
 Feel free to file an issue if you test and find out if something doesn't match up.
 
 ```rust
-use better_peekable::{BPeekable, BetterPeekable};
+// Required for peek and peek_n 
+use better_peekable::BetterPeekable;
 
 fn main() {
     let vec = vec![
@@ -23,8 +24,13 @@ fn main() {
         ];
 
         let mut iter = vec.into_iter();
-        let mut better_peeker = BPeekable::new(iter);
 
+        // Import BPeekable like so : 
+        use better_peekable::BPeekable;
+        let mut better_peeker = BPeekable::new(iter);
+        
+        // Or use 
+        // let mut better_peeker : BPeekable = better_peekable::create(iter);
        
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));

@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 /// A better peekable struct unlike the std version of Peekable, where we hold more than 1 peeked char.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BPeekable<I: Iterator> {
     peeked: bool,
     iter: I,
@@ -23,7 +23,11 @@ impl<I: Iterator> BPeekable<I> {
     }
 }
 
-pub trait BetterPeekable<I: Iterator> {
+pub fn init<I: Iterator>(i: I) -> BPeekable<I> {
+    BPeekable::new(i)
+}
+
+pub trait BetterPeekable<I: Iterator>: Iterator {
     /// Peek once, just like Peekable
     fn peek(&mut self) -> Option<&I::Item>;
     /// Peek `n` items into the Iterator
