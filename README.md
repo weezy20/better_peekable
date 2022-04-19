@@ -29,8 +29,8 @@ fn main() {
         use better_peekable::BPeekable;
         let mut better_peeker = BPeekable::new(iter);
         
-        // Or use 
-        // let mut better_peeker : BPeekable = better_peekable::create(iter);
+        // Or use a helper function 
+        // let mut better_peeker : BPeekable = better_peekable::init(iter);
        
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
