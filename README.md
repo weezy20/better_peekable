@@ -24,13 +24,7 @@ fn main() {
         ];
 
         let mut iter = vec.into_iter();
-
-        // Import BPeekable like so : 
-        use better_peekable::BPeekable;
-        let mut better_peeker = BPeekable::new(iter);
-        
-        // Or use a helper function 
-        // let mut better_peeker : BPeekable = better_peekable::init(iter);
+        let mut better_peeker = iter.better_peekable();
        
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));

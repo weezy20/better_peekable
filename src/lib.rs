@@ -9,7 +9,11 @@ pub struct BPeekable<I: Iterator> {
     /// Option<I::Item> is yielded by inner iterator
     cache: VecDeque<Option<I::Item>>,
 }
-impl<I: Iterator> BPeekable<I> {
+impl<I: Iterator> BPeekable<I>
+where
+    I: Iterator,
+    //I::Item: std::fmt::Debug,
+{
     pub fn new(i: I) -> Self {
         let mut cache: VecDeque<Option<I::Item>> = VecDeque::new();
         let mut iter: I = i;
@@ -21,28 +25,9 @@ impl<I: Iterator> BPeekable<I> {
             peeked: false,
         }
     }
-}
-
-pub fn init<I: Iterator>(i: I) -> BPeekable<I> {
-    BPeekable::new(i)
-}
-
-pub trait BetterPeekable<I: Iterator>: Iterator {
-    /// Peek once, just like Peekable
-    fn peek(&mut self) -> Option<&I::Item>;
-    /// Peek `n` items into the Iterator
-    /// peek() and peek_n(0) are equivalent
-    fn peek_n(&mut self, n: usize) -> Option<&I::Item>;
-}
-
-impl<I> BetterPeekable<I> for BPeekable<I>
-where
-    I: Iterator,
-    I::Item: std::fmt::Debug,
-{
     /// Peek once
     #[inline(always)]
-    fn peek(&mut self) -> Option<&I::Item> {
+    pub fn peek(&mut self) -> Option<&I::Item> {
         match self.cache.get(0) {
             Some(_) => self.cache.get(0).unwrap().as_ref(),
             None => {
@@ -54,7 +39,7 @@ where
         }
     }
     #[inline(always)]
-    fn peek_n(&mut self, n: usize) -> Option<&I::Item> {
+    pub fn peek_n(&mut self, n: usize) -> Option<&I::Item> {
         if !self.peeked {
             for _ in 0..=n {
                 if let Some(inner_item) = self.iter.next() {
@@ -66,6 +51,37 @@ where
         self.cache.get(n)?.as_ref()
     }
 }
+
+/// To enable all types implementing iterator to generate BPeekable
+pub trait BetterPeekable: Iterator
+where
+    Self: Sized,
+{
+    fn better_peekable(self) -> BPeekable<Self> {
+        init::<Self>(self)
+    }
+}
+
+impl<I> BetterPeekable for I where I: Iterator {}
+
+pub fn init<I: Iterator>(i: I) -> BPeekable<I> {
+    BPeekable::new(i)
+}
+
+// pub trait BetterPeekable<I: Iterator> {
+//     /// Peek once, just like Peekable
+//     fn peek(&mut self) -> Option<&I::Item>;
+//     /// Peek `n` items into the Iterator
+//     /// peek() and peek_n(0) are equivalent
+//     fn peek_n(&mut self, n: usize) -> Option<&I::Item>;
+// }
+//
+// impl<I> BetterPeekable<I> for BPeekable<I>
+// where
+//     I: Iterator,
+//     I::Item: std::fmt::Debug,
+// {
+// }
 
 impl<I> Iterator for BPeekable<I>
 where
@@ -82,14 +98,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::BetterPeekable;
     #[test]
     fn better_peekable_api() {
         let vec = vec![1, 2, 3, 4, 5, 6, 7, 8];
         // let len = vec.len();
         // dbg!(len);
         let iter = vec.into_iter();
-        let mut better_peeker = BPeekable::new(iter);
+        let mut better_peeker = iter.better_peekable();
         // peek_n(8) when vector length == 8 should be out of bounds
         assert_eq!(better_peeker.peek_n(8), None);
         assert_eq!(better_peeker.peek_n(7), Some(&8));
@@ -117,7 +133,7 @@ mod tests {
         let len = vec.len();
         dbg!(len);
         let iter = vec.into_iter();
-        let mut better_peeker = BPeekable::new(iter);
+        let mut better_peeker = iter.better_peekable();
 
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
         assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
