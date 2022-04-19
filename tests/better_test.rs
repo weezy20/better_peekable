@@ -77,3 +77,23 @@ fn iterations() {
     assert_eq!(ap.next(), bp.next());
     assert_eq!(ap.next(), bp.next());
 }
+
+#[test]
+fn iterator_methods() {
+    let mut bp = (0..100).better_peekable();
+    let mut ap = (0..100).peekable();
+
+    assert_eq!(ap.clone().count(), bp.clone().count());
+    assert_eq!(ap.nth(5), bp.nth(5));
+    assert_eq!(
+        {
+            ap.nth(5);
+            ap.peek()
+        },
+        {
+            bp.nth(5);
+            bp.peek()
+        }
+    );
+    assert_eq!(ap.rposition(|x| x == 50), bp.rposition(|x| x == 50));
+}
