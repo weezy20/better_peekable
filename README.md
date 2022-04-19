@@ -1,8 +1,8 @@
 # A Better Peekable
 
-This crate provides a trait `BetterPeekable` and a type `BPeekable<I: Iterator>` which is a wrapper over an iterator and returned by calling `better_peekable()` on any `Iterator`. Which implies that you can call the usual iterator methods on `BPeekable<I>` like `next()` and others (`ExactSizedIterator` and `DoubleEndedIterator` are unimplemented at the time of version 0.2.0-0.2.1, it will be implemented in v0.2.2), in addition to `peek` and `peek_n` which allow you to peek the inner iterator without consuming it. `peek` gives you a reference to the immediately available item to be consumed by a `next()` call, whereas `peek_n` allows you to peek `n` times ahead. Calling `peek_n(0)` is the same as calling `peek`.
+This crate provides a trait `BetterPeekable` and a type `BPeekable<I: Iterator>` which is a wrapper over an iterator and returned by calling `better_peekable()` on any `Iterator`. Which implies that you can call the usual iterator methods on `BPeekable<I>` like `next()`. You can now also call `size_hint` and `DoubleEndedIterator` like `rposition` and similar methods at the time of this version 0.2.2 in addition to `peek` and `peek_n` which allow you to peek the inner iterator without consuming it. `peek` gives you a reference to the immediately available item to be consumed by a `next()` call, whereas `peek_n` allows you to peek `n` times ahead. Calling `peek_n(0)` is the same as calling `peek`.
 
-`peek` and `peek_n` are idempotent which means calling them repeatedly on `BPeekable` should have no effects on the underlying iterator or any state of `BPeekable`.
+`peek` and `peek_n` are idempotent which means calling them repeatedly on `BPeekable` should have no effects on the underlying iterator or any state of `BPeekable`. If you find a bug that violates this contract, please open an issue.
 
 ## Usage
 
@@ -14,7 +14,6 @@ cargo add better_peekable
 ```
 
 We are going to test the idempotence of `BPeekable` using the following sequence of `peek` and `peek_n` calls. 
-Feel free to file an issue if you test and find out if something doesn't match up.
 
 ```rust
 // Required for peek and peek_n 

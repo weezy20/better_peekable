@@ -4,9 +4,11 @@ name = "better_peekable"
 description = "Create a Peekable structure like Rust's Peekable except allowing for peeking n items ahead"
 repository = "https://github.com/weezy20/better_peekable"
 readme = "README.md"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 license = "Apache-2.0"
 keywords = ["iterator", "multipeek", "better_peekable", "peekable", "peek"]
 categories = ["data-structures"]
 
+[dev-dependencies]
+rand = "0.8.5"

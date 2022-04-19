@@ -1,6 +1,16 @@
 use std::collections::VecDeque;
 
-/// A better peekable struct unlike the std version of Peekable, where we hold more than 1 peeked char.
+/// An extension trait for `Iterator`s allowing better peeking into the iterator
+pub trait BetterPeekable: Iterator
+where
+    Self: Sized,
+{
+    fn better_peekable(self) -> BPeekable<Self> {
+        init::<Self>(self)
+    }
+}
+
+/// A better peekable struct unlike the std version of Peekable, where we hold more than 1 peeked item.
 #[derive(Clone, Debug)]
 pub struct BPeekable<I: Iterator> {
     peeked: bool,
@@ -9,16 +19,15 @@ pub struct BPeekable<I: Iterator> {
     /// Option<I::Item> is yielded by inner iterator
     cache: VecDeque<Option<I::Item>>,
 }
+
 impl<I: Iterator> BPeekable<I>
 where
     I: Iterator,
-    //I::Item: std::fmt::Debug,
 {
     pub fn new(i: I) -> Self {
-        let mut cache: VecDeque<Option<I::Item>> = VecDeque::new();
-        let mut iter: I = i;
-        // Initialize the cache with one element to allow peeking
-        cache.push_back(iter.next());
+        let cache: VecDeque<Option<I::Item>> = VecDeque::new();
+        let iter: I = i;
+
         Self {
             iter,
             cache,
@@ -53,7 +62,6 @@ where
     }
 }
 
-
 impl<I> Iterator for BPeekable<I>
 where
     I: Iterator,
@@ -61,6 +69,7 @@ where
 {
     type Item = I::Item;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.cache.is_empty() {
             self.peek();
@@ -69,22 +78,46 @@ where
         self.peeked = false;
         self.cache.pop_front()?
     }
-}
 
-/// To enable all types implementing iterator to generate BPeekable
-pub trait BetterPeekable: Iterator
-where
-    Self: Sized,
-{
-    fn better_peekable(self) -> BPeekable<Self> {
-        init::<Self>(self)
+    #[inline]
+    /// Returns the bounds on the remaining length of the iterator.
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let peek_len = self.cache.len();
+        let (lo, hi) = self.iter.size_hint();
+        let lo = lo.saturating_add(peek_len);
+        let hi = match hi {
+            Some(x) => x.checked_add(peek_len),
+            None => None,
+        };
+        (lo, hi)
     }
 }
 
 impl<I> BetterPeekable for I where I: Iterator {}
 
+impl<I: Iterator> ExactSizeIterator for BPeekable<I> where I::Item: std::fmt::Debug {}
+
+impl<I> DoubleEndedIterator for BPeekable<I>
+where
+    I: DoubleEndedIterator,
+    I::Item: std::fmt::Debug,
+{
+    #[inline]
+    // fn next_back(&mut self) -> Option<Self::Item> {
+    //   self.iter.next_back()
+    // }
+    fn next_back(&mut self) -> Option<Self::Item>
+    {
+        match self.cache.back_mut() {
+            // Cache has a Some(_) at its back, call interior next_back or else return this Some(_)
+            Some(item @ Some(_)) => self.iter.next_back().or_else(|| item.take()),
+            // Cache has None in it, therefore the interior iterator has yielded
+            Some(None) => None,
+            // Cache is empty, check inner iterator
+            None => self.iter.next_back(),
+        }
+    }
+}
 pub fn init<I: Iterator>(i: I) -> BPeekable<I> {
     BPeekable::new(i)
 }
-
-
