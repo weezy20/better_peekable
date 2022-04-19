@@ -40,6 +40,7 @@ where
     }
     #[inline(always)]
     pub fn peek_n(&mut self, n: usize) -> Option<&I::Item> {
+        // Load cache only if we haven't peeked_n into it.
         if !self.peeked {
             for _ in 0..=n {
                 if let Some(inner_item) = self.iter.next() {
@@ -49,6 +50,24 @@ where
             self.peeked = true;
         }
         self.cache.get(n)?.as_ref()
+    }
+}
+
+
+impl<I> Iterator for BPeekable<I>
+where
+    I: Iterator,
+    I::Item: std::fmt::Debug,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cache.is_empty() {
+            self.peek();
+        }
+        // reset peek
+        self.peeked = false;
+        self.cache.pop_front()?
     }
 }
 
@@ -68,33 +87,6 @@ pub fn init<I: Iterator>(i: I) -> BPeekable<I> {
     BPeekable::new(i)
 }
 
-// pub trait BetterPeekable<I: Iterator> {
-//     /// Peek once, just like Peekable
-//     fn peek(&mut self) -> Option<&I::Item>;
-//     /// Peek `n` items into the Iterator
-//     /// peek() and peek_n(0) are equivalent
-//     fn peek_n(&mut self, n: usize) -> Option<&I::Item>;
-// }
-//
-// impl<I> BetterPeekable<I> for BPeekable<I>
-// where
-//     I: Iterator,
-//     I::Item: std::fmt::Debug,
-// {
-// }
-
-impl<I> Iterator for BPeekable<I>
-where
-    I: Iterator,
-    I::Item: std::fmt::Debug,
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.peeked = false;
-        self.cache.pop_front()?
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -161,5 +153,18 @@ mod tests {
             better_peeker.peek_n(1),
             Some(&"Idempotent Methods".to_string())
         );
+    }
+
+    #[test]
+    fn iterations() {
+        let mut bp = (0..100).better_peekable();
+        let mut ap = (0..100).peekable();
+        assert_eq!(ap.next(), bp.next());
+        assert_eq!(ap.next(), bp.next());
+        assert_eq!(ap.next(), bp.next());
+        assert_eq!(ap.next(), bp.next());
+        assert_eq!(ap.next(), bp.next());
+        assert_eq!(ap.next(), bp.next());
+        assert_eq!(ap.next(), bp.next());
     }
 }
