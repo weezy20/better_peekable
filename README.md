@@ -7,10 +7,10 @@ This crate provides a trait `BetterPeekable` and a type `BPeekable<I: Iterator>`
 ## Usage
 
 Add to `better_peekable` to your `Cargo.toml`.
-I recommend installing `cargo-edit` as it makes adding crates easier.
 
-```shell
-cargo add better_peekable
+```toml
+[dependencies]
+better_peekable = "0.2.2"
 ```
 
 We are going to test the idempotence of `BPeekable` using the following sequence of `peek` and `peek_n` calls. 
