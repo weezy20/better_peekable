@@ -130,9 +130,9 @@ fn double_ended_iterator_methods_against_standard_iterator() {
     // Normal iterator
     let mut ni = 0..100;
     let mut bp = (0..100).better_peekable();
-    let (ni_back, bp_back) = (ni.next_back() , bp.next_back());
-    assert_eq!(ni_back , bp_back); 
-    assert_eq!(ni.next(), bp.next()); 
+    let (ni_back, bp_back) = (ni.next_back(), bp.next_back());
+    assert_eq!(ni_back, bp_back);
+    assert_eq!(ni.next(), bp.next());
     assert_eq!(ni.next(), bp.next());
     assert_eq!(ni.size_hint(), bp.size_hint());
     assert_eq!(ni.position(|x| x == 50), bp.position(|x| x == 50));
@@ -154,7 +154,14 @@ fn double_ended_sanity_check() {
 
     let mut ap = (0..100).peekable();
     assert_eq!(Some(99), ap.next_back());
-    
+
     let mut bp = (0..100).better_peekable();
     assert_eq!(Some(99), bp.next_back());
+
+    let vec = vec![format!("1"), format!("2"), format!("3"), format!("4")];
+    let location_1 = vec[0].as_ptr();
+    let mut bap = vec.into_iter().better_peekable();
+    // let mut nap = vec.clone().into_iter().peekable();
+
+    assert_eq!(location_1, bap.peek().unwrap().as_ptr());
 }

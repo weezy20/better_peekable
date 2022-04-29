@@ -65,7 +65,6 @@ where
 impl<I> Iterator for BPeekable<I>
 where
     I: Iterator,
-    I::Item: std::fmt::Debug,
 {
     type Item = I::Item;
 
@@ -95,17 +94,13 @@ where
 
 impl<I> BetterPeekable for I where I: Iterator {}
 
-impl<I: Iterator> ExactSizeIterator for BPeekable<I> where I::Item: std::fmt::Debug {}
+impl<I: Iterator> ExactSizeIterator for BPeekable<I> {}
 
 impl<I> DoubleEndedIterator for BPeekable<I>
 where
     I: DoubleEndedIterator,
-    I::Item: std::fmt::Debug,
 {
     #[inline]
-    // fn next_back(&mut self) -> Option<Self::Item> {
-    //   self.iter.next_back()
-    // }
     fn next_back(&mut self) -> Option<Self::Item>
     {
         match self.cache.back_mut() {
