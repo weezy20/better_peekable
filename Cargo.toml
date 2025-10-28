@@ -7,7 +7,7 @@ readme = "README.md"
 version = "1.0.0"
 edition = "2024"
 license = "Apache-2.0"
-keywords = ["iterator", "multipeek", "better_peekable", "peekable", "peek"]
+keywords = ["iterator", "multipeek", "parser", "lexer", "peekable"]
 categories = ["data-structures"]
 
 [lib]

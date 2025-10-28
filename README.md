@@ -8,12 +8,10 @@ This crate provides a trait `BetterPeekable` and a type `BPeekable<I: Iterator>`
 
 ## Usage
 
-Add to `better_peekable` to your `Cargo.toml`.
-
-```toml
-[dependencies]
-better_peekable = "0.2.4"
+```sh
+cargo add better_peekable
 ```
+
 
 We are going to test the idempotence of `BPeekable` using the following sequence of `peek` and `peek_n` calls. 
 
@@ -61,6 +59,3 @@ fn main() {
             Some(&"Idempotent Methods".to_string())
         );
 ```
-
-### Changelog 0.2.4 :
-Removed trait bound `std::fmt::Debug` bound from `Iterator::Item`
