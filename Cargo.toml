@@ -1,7 +1,7 @@
 [package]
 authors = ["Abhishek Shah"]
 name = "better_peekable"
-description = "Create a Peekable structure like Rust's Peekable except allowing for peeking n items ahead"
+description = "Peekable iterator like std::iter::Peekable but allows for peeking n items ahead instead of just one."
 repository = "https://github.com/weezy20/better_peekable"
 readme = "README.md"
 version = "1.0.0"
@@ -9,6 +9,11 @@ edition = "2024"
 license = "Apache-2.0"
 keywords = ["iterator", "multipeek", "parser", "lexer", "peekable"]
 categories = ["data-structures"]
+
+[features]
+default = ["alloc"]
+alloc = []
+std = ["alloc"]
 
 [lib]
 path = "lib.rs"

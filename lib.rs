@@ -1,4 +1,16 @@
+#![cfg_attr(not(test), no_std)]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(all(feature = "alloc", not(test)))]
+use alloc::collections::VecDeque;
+
+#[cfg(test)]
 use std::collections::VecDeque;
+
+#[cfg(not(feature = "alloc"))]
+compile_error!("This crate requires the 'alloc' or 'std' to be enabled for BetterPeekable to work.");
 
 /// An extension trait for `Iterator`s allowing better peeking into the iterator
 pub trait BetterPeekable: Iterator
