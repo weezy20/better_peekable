@@ -1,61 +1,100 @@
-# A Better Peekable
+# Better Peekable
 
-This crate provides a trait `BetterPeekable` and a type `BPeekable<I: Iterator>` which is a wrapper over an iterator and returned by calling `better_peekable()` on any `Iterator`. You can call the usual iterator methods on `BPeekable<I>` just like `next()` on `I`. You can also call methods like `next_back`,`size_hint` and `rposition` and everything else from `DoubleEndedIterator` in addition to `peek` and `peek_n`. 
+A `no_std` compatible iterator adapter that lets you peek multiple items ahead - perfect for building lexers, parsers, and other lookahead-heavy code.
 
-`peek` gives you a reference to the immediately available item to be consumed by a `next()` call, whereas `peek_n` allows you to peek `n` times ahead. Calling `peek_n(0)` is the same as calling `peek`.
+Unlike `std::iter::Peekable` which only lets you peek one item ahead, `BetterPeekable` provides `peek_n(n)` to look arbitrarily far into your iterator without consuming items. Of course it also provides `peek()` which is the same as `peek_n(0)`.
 
-`peek` and `peek_n` are idempotent which means calling them repeatedly on `BPeekable` should have no effects on the underlying iterator or any state of `BPeekable`. If you find a bug that violates this contract, please open an issue.
-
-## Usage
+## Installation
 
 ```sh
 cargo add better_peekable
 ```
 
+For `no_std` environments:
 
-We are going to test the idempotence of `BPeekable` using the following sequence of `peek` and `peek_n` calls. 
+```sh
+cargo add better_peekable --no-default-features --features alloc
+```
+
+## Quick Example
 
 ```rust
-// Required for peek and peek_n 
 use better_peekable::BetterPeekable;
 
-fn main() {
-    let vec = vec![
-            String::from("Hello"),
-            String::from("World"),
-            String::from("It's a nice day to make"),
-            String::from("A better peekable iterator adaptor"),
-            String::from("Peek_N and Peek are supposed to be"),
-            String::from("Idempotent Methods"),
-        ];
+let mut tokens = "if x == 42".chars().better_peekable();
 
-        let mut iter = vec.into_iter();
-        let mut better_peeker = iter.better_peekable();
-       
-        assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
-        assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
-        assert_eq!(better_peeker.peek(), Some(&"Hello".to_string()));
-        assert_eq!(better_peeker.peek_n(1), Some(&"World".to_string()));
-        assert_eq!(better_peeker.next(), Some("Hello".to_string()));
-        assert_eq!(better_peeker.next(), Some("World".to_string()));
-        assert_eq!(
-            better_peeker.peek(),
-            Some(&"It's a nice day to make".to_string())
-        );
-        assert_eq!(
-            better_peeker.peek_n(0),
-            Some(&"It's a nice day to make".to_string())
-        );
-        assert_eq!(
-            better_peeker.peek_n(1),
-            Some(&"A better peekable iterator adaptor".to_string())
-        );
-        assert_eq!(
-            better_peeker.nth(1),
-            Some("A better peekable iterator adaptor".to_string())
-        );
-        assert_eq!(
-            better_peeker.peek_n(1),
-            Some(&"Idempotent Methods".to_string())
-        );
+// Look ahead to parse keywords
+if tokens.peek() == Some(&'i') && tokens.peek_n(1) == Some(&'f') {
+    tokens.next(); // consume 'i'
+    tokens.next(); // consume 'f'
+    println!("Found 'if' keyword");
+}
 ```
+
+## Lexer Example
+
+Here's how you might use it to build a simple lexer that needs lookahead:
+
+```rust
+use better_peekable::BetterPeekable;
+
+#[derive(Debug, PartialEq)]
+enum Token {
+    Number(i32),
+    Arrow,      // ->
+    Minus,      // -
+    Greater,    // >
+}
+
+fn tokenize(input: &str) -> Vec<Token> {
+    let mut chars = input.chars().better_peekable();
+    let mut tokens = Vec::new();
+
+    while let Some(&ch) = chars.peek() {
+        match ch {
+            '0'..='9' => {
+                let mut num = 0;
+                while let Some(&digit) = chars.peek() {
+                    if digit.is_ascii_digit() {
+                        num = num * 10 + (chars.next().unwrap() as i32 - '0' as i32);
+                    } else {
+                        break;
+                    }
+                }
+                tokens.push(Token::Number(num));
+            }
+            '-' => {
+                chars.next(); // consume '-'
+                // Look ahead for arrow operator
+                if chars.peek() == Some(&'>') {
+                    chars.next(); // consume '>'
+                    tokens.push(Token::Arrow);
+                } else {
+                    tokens.push(Token::Minus);
+                }
+            }
+            '>' => {
+                chars.next();
+                tokens.push(Token::Greater);
+            }
+            ' ' => { chars.next(); } // skip whitespace
+            _ => { chars.next(); }   // skip unknown chars
+        }
+    }
+
+    tokens
+}
+
+fn main() {
+    let tokens = tokenize("42 -> 7 - 3");
+    println!("{:?}", tokens);
+    // Output: [Number(42), Arrow, Number(7), Minus, Number(3)]
+}
+```
+
+## Key Features
+
+- **Multi-item lookahead**: `peek_n(n)` lets you look `n` items ahead
+- **Idempotent**: Multiple `peek` calls don't affect the iterator state
+- **Full iterator support**: Works with `DoubleEndedIterator`, `ExactSizeIterator`, etc.
+- **`no_std` compatible**: Works in embedded and WASM environments with `alloc`
