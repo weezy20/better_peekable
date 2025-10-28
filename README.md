@@ -92,6 +92,15 @@ fn main() {
 }
 ```
 
+## More Examples
+
+For a complete lexer/parser example with advanced lookahead patterns, see [`examples/lexer.rs`](examples/lexer.rs).
+
+Run it with:
+```sh
+cargo run --example lexer
+```
+
 ## Key Features
 
 - **Multi-item lookahead**: `peek_n(n)` lets you look `n` items ahead
